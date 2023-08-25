@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>dataVisualWidget_Form</class>
+ <widget class="QWidget" name="dataVisualWidget_Form">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -36,7 +36,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="dbPlotWidget" name="graphicsView"/>
+    <widget class="runsPlotWidget" name="graphicsView"/>
    </item>
    <item>
     <widget class="QFrame" name="frame_2">
@@ -133,42 +133,42 @@
         </property>
         <row>
          <property name="text">
-          <string>VolDiff</string>
+          <string>VolDiff(mvs)</string>
          </property>
         </row>
         <row>
          <property name="text">
-          <string>AvgRate</string>
+          <string>AvgRate(mvs/10s)</string>
          </property>
         </row>
         <row>
          <property name="text">
-          <string>NormTq</string>
+          <string>NormTq(mins)</string>
          </property>
         </row>
         <column>
          <property name="text">
-          <string>PC</string>
+          <string>Ch1</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>GeneN_1</string>
+          <string>Ch2</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>GeneN_2</string>
+          <string>Ch3</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>GeneM_1</string>
+          <string>Ch4</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>GeneM_2</string>
+          <string>Ch5</string>
          </property>
         </column>
         <item row="0" column="0">
@@ -183,17 +183,17 @@
         </item>
         <item row="0" column="4">
          <property name="text">
-          <string>1</string>
+          <string/>
          </property>
         </item>
         <item row="1" column="4">
          <property name="text">
-          <string>1</string>
+          <string/>
          </property>
         </item>
         <item row="2" column="4">
          <property name="text">
-          <string>1</string>
+          <string/>
          </property>
         </item>
        </widget>
@@ -242,35 +242,53 @@
         <item>
          <widget class="QCheckBox" name="checkBox">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Ch1</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="tristate">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_2">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Ch2</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_3">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Ch3</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_4">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Ch4</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_5">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Ch5</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -283,7 +301,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>dbPlotWidget</class>
+   <class>runsPlotWidget</class>
    <extends>QGraphicsView</extends>
    <header location="global">views.myPlotWidget</header>
   </customwidget>

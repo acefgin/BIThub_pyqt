@@ -1,5 +1,5 @@
-from views.resources.dataVisul_Widget import dataVisualWidget_Form
-from views.resources.dbList_Widget import dbListWidget_Form
+from views.resources.dataVisul_Widget_ui import Ui_dataVisualWidget_Form
+from views.resources.dbList_Widget_ui import Ui_dbListWidget_Form
 from views.resources.testImport_Widget import testImportWidget_Form
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 from helpers.loadTestsFromDb import *
 
-class dataVisual_Widget(QtWidgets.QWidget, dataVisualWidget_Form):
+class dataVisual_Widget(QtWidgets.QWidget, Ui_dataVisualWidget_Form):
     def __init__(self, parent=None):
         super(dataVisual_Widget, self).__init__(parent)
         self.setupUi(self)
@@ -46,7 +46,7 @@ class dataVisual_Widget(QtWidgets.QWidget, dataVisualWidget_Form):
                     item = QtWidgets.QTableWidgetItem(str(featList[c][1]))
                 qTable.setItem(r, c, item)
 
-class dbList_Widget(QtWidgets.QWidget, dbListWidget_Form):
+class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
     def __init__(self, parent=None):
         super(dbList_Widget, self).__init__(parent)
         self.setupUi(self)

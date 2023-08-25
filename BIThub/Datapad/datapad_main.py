@@ -12,11 +12,11 @@ def listWidgetCtrl(lsWidget, dataInfoWidget):
     for i in range(len(keylist)):
         for item in cbboxItems[i]:
             if i == 0:
-                lsWidget.comboBox.addItem(item)
+                lsWidget.comboBox.addItem(str(item))
             elif i == 1:
-                lsWidget.comboBox_2.addItem(item)
+                lsWidget.comboBox_2.addItem(str(item))
             elif i == 2:
-                lsWidget.comboBox_3.addItem(item)
+                lsWidget.comboBox_3.addItem(str(item))
         if i == 0:
             lsWidget.comboBox.currentTextChanged.connect(lambda value: lsWidget.listWidget.updateListItem(keylist[0], value))
         elif i == 1:

@@ -246,7 +246,7 @@ class dbItemListWidget(QListWidget):
             self.addItem(item["TestId"])
 
     def getItemsForCombobox(self):
-        self.keyList = ['Result', 'CreatedDate', 'Name']
+        self.keyList = ['Result', 'Name', 'CreatedDate']
         self.cbboxItemsSets = []
         for key in self.keyList:
             if key == 'Result':
