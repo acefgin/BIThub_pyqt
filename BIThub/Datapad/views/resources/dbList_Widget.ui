@@ -34,7 +34,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Location</string>
+        <string>Assay.Name</string>
        </property>
       </widget>
      </item>
@@ -48,7 +48,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>InputGroup</string>
+        <string>Result</string>
        </property>
       </widget>
      </item>
@@ -112,7 +112,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>AsExpected</string>
+        <string>Test Date</string>
        </property>
       </widget>
      </item>
@@ -144,7 +144,7 @@
   <customwidget>
    <class>dbItemListWidget</class>
    <extends>QListWidget</extends>
-   <header>controllers.dbOperations</header>
+   <header>helpers.dbOperations</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -229,6 +229,7 @@ def writeMongoDBFromDb(filePath):
         json.dump(objList, file, indent = 2)
     writeMongoDB(jsonFile)
 
+
 if __name__=='__main__':
     
     # dbFilePath = sys.argv[1]

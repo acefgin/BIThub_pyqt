@@ -50,9 +50,9 @@ class dbList_Widget(QtWidgets.QWidget, dbListWidget_Form):
     def __init__(self, parent=None):
         super(dbList_Widget, self).__init__(parent)
         self.setupUi(self)
-        self.pushButton_2.clicked.connect(self.selectDbFile)
+        self.pushButton_2.clicked.connect(self.getDbFile)
         
-    def selectDbFile(self):
+    def getDbFile(self):
         dbFileName = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', './', 'Database (*.db)')
         print(dbFileName)
         writeMongoDBFromDb(dbFileName[0])

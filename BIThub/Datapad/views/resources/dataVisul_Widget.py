@@ -24,7 +24,7 @@ class dataVisualWidget_Form(object):
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.graphicsView = dbPlotWidget(Form)
+        self.graphicsView = runsPlotWidget(Form)
         self.graphicsView.setObjectName("graphicsView")
         self.verticalLayout_2.addWidget(self.graphicsView.centralwidget)
         self.frame_2 = QtWidgets.QFrame(Form)
@@ -184,7 +184,7 @@ class dataVisualWidget_Form(object):
         self.checkBox_4.setChecked(True)
         self.checkBox_5.setText(_translate("Form", "GeneM_2"))
         self.checkBox_5.setChecked(True)
-from views.myPlotWidget import dbPlotWidget
+from views.myPlotWidget import runsPlotWidget
 
 
 if __name__ == "__main__":

@@ -30,9 +30,9 @@ class MplCanvas(FigureCanvas):
         super().__init__(fig)
 
 
-class dbPlotWidget(QtWidgets.QGraphicsView):
+class runsPlotWidget(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
-        super(dbPlotWidget, self).__init__(parent)
+        super(runsPlotWidget, self).__init__(parent)
         self.canvas = MplCanvas(self, width=24, height=6, dpi=40)
         plt.style.use('seaborn-bright')
         plt.rc('axes', linewidth=2)
@@ -50,22 +50,21 @@ class dbPlotWidget(QtWidgets.QGraphicsView):
         # self.show()
         self.curvesList = []
 
-    def curvesPlot(self, testLog):
-        print("run")
+    def curvesPlot(self, run):
+        testInfo, lysisReads, detectReads = run
         self.curvesList = []
         self.canvas.axes.cla()
         CHANNELNUM = 5
-        time = testLog['ReactTime']
-        targetName = testLog['TargetName']
-        testId = testLog['TestId']
-        input = testLog['SampleId']
-        reactDataNameLs = ['Well1Readings','Well2Readings','Well3Readings','Well4Readings','Well5Readings']
-        PD1, PD2, PD3, PD4, PD5 = [], [], [], [], []
-        chList = [PD1, PD2, PD3, PD4, PD5]
+        time = detectReads['Time'] / 60000 - 5
+        targetName = detectReads['Target']
+        sampleId = testInfo['SampleId']
+        overallResult = testInfo['OverallResult']
+        
+        chList = detectReads['Signals']
         smoothedSignals = []
         for i in range(CHANNELNUM):
-            chList[i] = testLog[reactDataNameLs[i]]
-            smoothedSignals.append(self.smooth(np.array(chList[i])))
+
+            smoothedSignals.append(self.smooth(chList[i]))
 
         featList = np.zeros((5,4))
         lnColorLs = ['r', '#35ff35', '#3535ff', '#35ffff', '#ff35ff']
@@ -79,29 +78,29 @@ class dbPlotWidget(QtWidgets.QGraphicsView):
             self.curvesList.append(ln)
 
         # Add Title
-        title = '{}_{}'.format(testId, input)
+        title = '{}_{}'.format(sampleId, overallResult)
         self.canvas.axes.set_title(title, color='k', fontsize = 21, fontweight = 'bold')
         # Add Axis Labels
         
         self.canvas.axes.set_ylabel("SensorRead (mvs)", fontsize = 21, fontweight = 'bold')
-        self.canvas.axes.set_xlabel("Time (secs)", fontsize = 21, fontweight = 'bold')
+        self.canvas.axes.set_xlabel("Time (mins)", fontsize = 21, fontweight = 'bold')
         
         #Add grid
         self.canvas.axes.grid(linestyle = '-.')
         #Add legend
-        legend = self.canvas.axes.legend(loc='upper right',  ncol=5)
+        legend = self.canvas.axes.legend(loc='upper right',  ncol=1)
         
         #Set tickers
-        self.canvas.axes.xaxis.set_major_locator(MultipleLocator(200))
+        self.canvas.axes.xaxis.set_major_locator(MultipleLocator(5))
         self.canvas.axes.xaxis.set_major_formatter('{x:.0f}')
-        self.canvas.axes.xaxis.set_minor_locator(MultipleLocator(100))
+        self.canvas.axes.xaxis.set_minor_locator(MultipleLocator(2.5))
 
-        self.canvas.axes.yaxis.set_major_locator(MultipleLocator(100))
+        self.canvas.axes.yaxis.set_major_locator(MultipleLocator(50))
         self.canvas.axes.yaxis.set_major_formatter('{x:.0f}')
-        self.canvas.axes.yaxis.set_minor_locator(MultipleLocator(50))
+        self.canvas.axes.yaxis.set_minor_locator(MultipleLocator(25))
         #Set Range
-        self.canvas.axes.set_xlim(0, 1800)
-        self.canvas.axes.set_ylim(0, 600)
+        self.canvas.axes.set_xlim(-5, 30)
+        self.canvas.axes.set_ylim(0, 500)
 
         self.canvas.draw()
         return featList
