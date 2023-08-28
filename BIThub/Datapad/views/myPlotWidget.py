@@ -1,7 +1,7 @@
-import pymongo
-import sys
+import pymongo, sys
 import numpy as np
 from PyQt5 import QtCore, QtWidgets # import PyQt5 before matplotlib
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
