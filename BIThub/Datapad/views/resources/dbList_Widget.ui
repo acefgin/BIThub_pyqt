@@ -144,7 +144,7 @@
   <customwidget>
    <class>dbItemListWidget</class>
    <extends>QListWidget</extends>
-   <header>helpers.dbOperations</header>
+   <header>helpers.sqlOps</header>
   </customwidget>
  </customwidgets>
  <resources/>

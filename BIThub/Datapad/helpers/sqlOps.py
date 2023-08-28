@@ -2,7 +2,7 @@ import os, sys
 import paramiko, sqlalchemy
 import pandas as pd
      
-from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QListWidgetItem
+from PyQt5.QtWidgets import QApplication, QListWidget
 from PyQt5.QtCore import pyqtSignal
 
 # A wrapper of paramiko.SSHClient to execute command with sudo

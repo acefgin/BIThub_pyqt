@@ -3,8 +3,6 @@ from views.resources.dbList_Widget_ui import Ui_dbListWidget_Form
 from views.resources.testImport_Widget import testImportWidget_Form
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QDir
-from PyQt5.QtWidgets import *
 
 import os, csv, glob
 import json

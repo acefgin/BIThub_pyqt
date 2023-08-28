@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>datapadMain</class>
+ <widget class="QMainWindow" name="datapadMain">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1280</width>
-    <height>720</height>
+    <height>692</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Datapad</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,1">
@@ -23,29 +23,18 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1280</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
   <customwidget>
    <class>dataVisual_Widget</class>
    <extends>QWidget</extends>
-   <header location="global">customWidgets</header>
+   <header location="global">views.widgetsCtrl</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>dbList_Widget</class>
    <extends>QWidget</extends>
-   <header location="global">customWidgets</header>
+   <header location="global">views.widgetsCtrl</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

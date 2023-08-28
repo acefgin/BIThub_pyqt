@@ -105,4 +105,4 @@ class Ui_dbListWidget_Form(object):
         self.pushButton_4.setText(_translate("dbListWidget_Form", "PushButton"))
         self.label_3.setText(_translate("dbListWidget_Form", "Test Date"))
         self.pushButton.setText(_translate("dbListWidget_Form", "Find"))
-from helpers.dbOperations import dbItemListWidget
+from helpers.sqlOps import dbItemListWidget

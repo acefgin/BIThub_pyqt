@@ -1,9 +1,6 @@
-from views.mainWin import *
+from views.resources.mainWin_ui import Ui_datapadMain
 
 from views.myPlotWidget import *
-
-def listWidgetCtrl(lsWidget, dataInfoWidget):
-    lsWidget.listWidget.onClickSignal.connect(dataInfoWidget.updateTestInfo)
 
 def testInfoWidgetCtrl(widget):
     
@@ -25,7 +22,7 @@ def testInfoWidgetCtrl(widget):
     #             item = QtWidgets.QTableWidgetItem(str(featList[c][1]))
     #         qTable.setItem(r, c, item)
 
-class mainAppWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+class mainAppWindow(QtWidgets.QMainWindow, Ui_datapadMain):
     def __init__(self, parent=None):
         super(mainAppWindow, self).__init__(parent)
         self.setupUi(self)
