@@ -100,7 +100,7 @@ class Ui_dbListWidget_Form(object):
         self.checkBox.setText(_translate("dbListWidget_Form", "CheckBox"))
         self.checkBox_2.setText(_translate("dbListWidget_Form", "CheckBox"))
         self.checkBox_3.setText(_translate("dbListWidget_Form", "CheckBox"))
-        self.pushButton_2.setText(_translate("dbListWidget_Form", "PushButton"))
+        self.pushButton_2.setText(_translate("dbListWidget_Form", "Load Runs"))
         self.pushButton_3.setText(_translate("dbListWidget_Form", "PushButton"))
         self.pushButton_4.setText(_translate("dbListWidget_Form", "PushButton"))
         self.label_3.setText(_translate("dbListWidget_Form", "Test Date"))

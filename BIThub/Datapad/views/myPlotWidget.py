@@ -12,15 +12,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 
 matplotlib.use("Qt5Agg")
 
-def connectDB(dbName, collectionName):
-    client = pymongo.MongoClient('mongodb://localhost:27017')
-    db = client[dbName]
-    collection = db[collectionName]
-    return client, collection
-
-def queryDB(collection, query):
-    return collection.find_one(query)
-
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=24, height=6, dpi=40):
         fig = Figure(figsize=(width, height), dpi=dpi)
@@ -28,7 +19,6 @@ class MplCanvas(FigureCanvas):
         fig.tight_layout()
         self.axes = fig.add_subplot(111)
         super().__init__(fig)
-
 
 class runsPlotWidget(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
@@ -42,12 +32,8 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(toolbar)
         layout.addWidget(self.canvas)
-        # Create a placeholder widget to hold our toolbar and canvas.
-        self.centralwidget = QtWidgets.QWidget()
-        self.centralwidget.setLayout(layout)
-        # self.scene = QtWidgets.QGraphicsScene(self.centralwidget)
-        # self.setScene(self.scene)
-        # self.show()
+        
+        self.setLayout(layout)
         self.curvesList = []
 
     def curvesPlot(self, run):

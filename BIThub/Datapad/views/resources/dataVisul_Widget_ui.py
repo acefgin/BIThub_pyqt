@@ -26,7 +26,7 @@ class Ui_dataVisualWidget_Form(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.graphicsView = runsPlotWidget(dataVisualWidget_Form)
         self.graphicsView.setObjectName("graphicsView")
-        self.verticalLayout_2.addWidget(self.graphicsView.centralwidget)
+        self.verticalLayout_2.addWidget(self.graphicsView)
         self.frame_2 = QtWidgets.QFrame(dataVisualWidget_Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)

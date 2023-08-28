@@ -190,9 +190,9 @@ class dbItemListWidget(QListWidget):
         
         self.dfDict = {}
         self.fullList = []
-        self.getDd2Df()
-        self.loadItemFromDF()
-        self.getItemsForCombobox()
+        # self.getDd2Df()
+        # self.loadItemFromDF()
+        # self.getItemsForCombobox()
 
         self.itemDoubleClicked.connect(self.onClicked)
     

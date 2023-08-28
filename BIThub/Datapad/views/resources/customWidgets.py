@@ -10,7 +10,6 @@ import os, csv, glob
 import json
 
 from pathlib import Path
-from helpers.loadTestsFromDb import *
 
 class dataVisual_Widget(QtWidgets.QWidget, Ui_dataVisualWidget_Form):
     def __init__(self, parent=None):
@@ -53,10 +52,31 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
         self.pushButton_2.clicked.connect(self.getDbFile)
         
     def getDbFile(self):
-        dbFileName = QtWidgets.QFileDialog.getOpenFileName(self, 'Select File', './', 'Database (*.db)')
-        print(dbFileName)
-        writeMongoDBFromDb(dbFileName[0])
-        self.listWidget.loadItemFromDB()
+        self.listWidget.getDd2Df()
+        self.listWidget.loadItemFromDF()
+        self.listWidget.getItemsForCombobox()
+        self.listWidgetCtl()
+        
+    def listWidgetCtl(self):
+        cbboxItems = self.listWidget.cbboxItemsSets
+        keylist = self.listWidget.keyList
+        self.comboBox.addItem("All")
+        self.comboBox_2.addItem("All")
+        self.comboBox_3.addItem("All")
+        for i in range(len(keylist)):
+            for item in cbboxItems[i]:
+                if i == 0:
+                    self.comboBox.addItem(str(item))
+                elif i == 1:
+                    self.comboBox_2.addItem(str(item))
+                elif i == 2:
+                    self.comboBox_3.addItem(str(item))
+            if i == 0:
+                self.comboBox.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[0], value))
+            elif i == 1:
+                self.comboBox_2.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[1], value))
+            elif i == 2:
+                self.comboBox_3.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[2], value))
 
 class testImport_Widget(QtWidgets.QWidget, testImportWidget_Form):
     def __init__(self, parent=None):

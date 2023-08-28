@@ -4,25 +4,6 @@ from views.myPlotWidget import *
 
 def listWidgetCtrl(lsWidget, dataInfoWidget):
     lsWidget.listWidget.onClickSignal.connect(dataInfoWidget.updateTestInfo)
-    cbboxItems = lsWidget.listWidget.cbboxItemsSets
-    keylist = lsWidget.listWidget.keyList
-    lsWidget.comboBox.addItem("All")
-    lsWidget.comboBox_2.addItem("All")
-    lsWidget.comboBox_3.addItem("All")
-    for i in range(len(keylist)):
-        for item in cbboxItems[i]:
-            if i == 0:
-                lsWidget.comboBox.addItem(str(item))
-            elif i == 1:
-                lsWidget.comboBox_2.addItem(str(item))
-            elif i == 2:
-                lsWidget.comboBox_3.addItem(str(item))
-        if i == 0:
-            lsWidget.comboBox.currentTextChanged.connect(lambda value: lsWidget.listWidget.updateListItem(keylist[0], value))
-        elif i == 1:
-            lsWidget.comboBox_2.currentTextChanged.connect(lambda value: lsWidget.listWidget.updateListItem(keylist[1], value))
-        elif i == 2:
-            lsWidget.comboBox_3.currentTextChanged.connect(lambda value: lsWidget.listWidget.updateListItem(keylist[2], value))
 
 def testInfoWidgetCtrl(widget):
     
@@ -53,7 +34,9 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = mainAppWindow()
-    listWidgetCtrl(MainWindow.widget_2, MainWindow.widget)
+    lsWidget = MainWindow.widget_2
+    dataInfoWidget = MainWindow.widget
+    lsWidget.listWidget.onClickSignal.connect(dataInfoWidget.updateTestInfo)
     # testInfoWidgetCtrl(MainWindow.widget)
     MainWindow.show()
     sys.exit(app.exec_())
