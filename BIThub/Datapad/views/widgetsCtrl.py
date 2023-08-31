@@ -4,8 +4,7 @@ from views.resources.testImport_Widget import testImportWidget_Form
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-import os, csv, glob
-import json
+import os, csv, glob, json, socket
 
 from pathlib import Path
 
@@ -48,12 +47,26 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
         super(dbList_Widget, self).__init__(parent)
         self.setupUi(self)
         self.pushButton_2.clicked.connect(self.getDbFile)
+        self.pushButton_2.setEnabled(False)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.isDeviceConnected)
+        self.timer.start(1000)
         
     def getDbFile(self):
         self.listWidget.getDd2Df()
         self.listWidget.loadItemFromDF()
         self.listWidget.getItemsForCombobox()
         self.listWidgetCtl()
+    
+    def isDeviceConnected(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('169.254.21.151', 22))
+        print(result)
+        if result == 0:
+            self.pushButton_2.setEnabled(True)
+        else:
+            self.pushButton_2.setEnabled(False)
+        self.timer.start(1000)
         
     def listWidgetCtl(self):
         cbboxItems = self.listWidget.cbboxItemsSets

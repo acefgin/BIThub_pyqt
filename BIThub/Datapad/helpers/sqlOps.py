@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, sqlite3
 import paramiko, sqlalchemy
 import pandas as pd
      
@@ -267,17 +267,55 @@ class dbItemListWidget(QListWidget):
         idStr = lstItem.text().split('-')[-1]
         selectedTest = self.bitRuns.getRunBySampleId(idStr)
         self.onClickSignal.emit(selectedTest)
+
+# copy table from one db to another
+def copyTablesBetweenDb(sourceDb, targetDb, tableNames):
+    opDb = sqlite3.connect(':memory:')
+    opDb.execute(f'ATTACH DATABASE "{sourceDb}" AS source')
+    opDb.execute(f'ATTACH DATABASE "{targetDb}" AS target')
+    
+    for table in tableNames:
+        if table == 'Runs':
+            opDb.execute(f'INSERT OR IGNORE INTO target.{table}(Id, CreatedDate, UpdatedDate, AssayDefinitionId, Barcode, SampleId, Result, Comments) SELECT * FROM source.{table}')
+        else:
+            opDb.execute(f'INSERT OR IGNORE INTO target.{table} SELECT * FROM source.{table}')
+    opDb.commit()
+
+    opDb.close()
+    
+def deleteRuns(sqliteDb, runIdList):
+    conn = sqlite3.connect(sqliteDb)
+    c = conn.cursor()
+    for runId in runIdList:
+        c.execute(f'DELETE FROM Runs WHERE Id = {runId}')
+        c.execute(f'DELETE FROM TargetResults WHERE RunId = {runId}')
+        c.execute(f'DELETE FROM Readings WHERE RunId = {runId}')
+        c.execute(f'DELETE FROM LysisReadings WHERE RunId = {runId}')
+    c.execute('DELETE FROM SmoothedReadings')
         
+    conn.commit()
+    conn.close()
+
+def addCol2Table(sqliteDb, tableName, colName, colType):
+    conn = sqlite3.connect(sqliteDb)
+    c = conn.cursor()
+    c.execute(f'ALTER TABLE {tableName} ADD COLUMN {colName} {colType}')
+    conn.commit()
+    conn.close()
     
 if __name__ == '__main__':
     # getDb()
     # dfDict = sql2Dataframes()
     
-    app = QApplication(sys.argv)
+    # app = QApplication(sys.argv)
 
-    demo = dbItemListWidget()
-    # demo.loadItemFromDF(dfDict)
+    # demo = dbItemListWidget()
+    # # demo.loadItemFromDF(dfDict)
     
-    demo.show()
+    # demo.show()
 
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_())
+    
+    # copyTablesBetweenDb('cxl_s.db', 'cxl.db', ['Runs', 'TargetResults', 'Readings', 'LysisReadings','AssayDefinitions', 'SmoothedReadings'])
+    startRunId, endRunId = 150, 161
+    deleteRuns('cxl.db', range(startRunId, endRunId + 1))

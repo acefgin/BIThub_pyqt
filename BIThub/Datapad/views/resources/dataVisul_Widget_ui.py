@@ -186,4 +186,4 @@ class Ui_dataVisualWidget_Form(object):
         self.checkBox_3.setText(_translate("dataVisualWidget_Form", "Ch3"))
         self.checkBox_4.setText(_translate("dataVisualWidget_Form", "Ch4"))
         self.checkBox_5.setText(_translate("dataVisualWidget_Form", "Ch5"))
-from views.myPlotWidget import runsPlotWidget
+from views.runsPlotWidget import runsPlotWidget

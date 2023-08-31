@@ -1,6 +1,6 @@
 from views.resources.mainWin_ui import Ui_datapadMain
 
-from views.myPlotWidget import *
+from views.runsPlotWidget import *
 
 def testInfoWidgetCtrl(widget):
     

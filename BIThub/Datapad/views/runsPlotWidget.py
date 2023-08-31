@@ -1,4 +1,3 @@
-import pymongo, sys
 import numpy as np
 from PyQt5 import QtCore, QtWidgets # import PyQt5 before matplotlib
 
@@ -111,14 +110,11 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
         if x.size < window_len:
             raise ValueError("Input vector needs to be bigger than window size.")
 
-
         if window_len<3:
             return x
 
-
         if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
             raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
-
 
         s = np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
         #print(len(s))
@@ -150,8 +146,6 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
 
     def labelSteps(self, datas, startPt = 30, rateTh = 0.3, width_LB = 15, avgRate_LB = 0.8):
         
-        #if len(datas) >= 10:
-        #	datas = smooth(datas)
         dataDiffs = np.diff(datas)
 
         listOfSteps = []
@@ -176,15 +170,12 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
                     while index <= stepR:
                         stepDiff = stepDiff + dataDiffs[index]
                         index += 1
-                    #print(stepDiff, stepR, stepL)
                     avgRate = stepDiff / (stepR - stepL + 1)
-                    #print(avgRate)
                     LAMPStepFL = avgRate >= avgRate_LB
                 step = [stepL, stepR, LAMPStepFL]
                 stepL = cnt + 1
                 listOfSteps.append(step)
                 continue
-        #print(listOfSteps)
         stepDiff = 0
         cp = 0
         maxDiff = 0
@@ -208,22 +199,3 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
         if stepWidth != 0: avgRate = stepDiff/stepWidth
         
         return listOfSteps, round(stepDiff, 1), round(cp, 1), round(stepWidth, 1), round(avgRate, 1)
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    client, testLogs = connectDB('thy_testsDB', 's2r_testlog')
-    testLog = queryDB(testLogs, {"TestId": "2022-06-22_NABITA010.10_3"})
-    client.close()
-    MainWindow = QtWidgets.QMainWindow()
-    MainWindow.setGeometry(200, 200, 1280, 360)
-
-    graphW = dbPlotWidget()
-    MainWindow.setCentralWidget(graphW.centralwidget)
-
-    
-    graphW.curvesPlot(testLog)
-    MainWindow.show()
-    sys.exit(app.exec_())
-
-if __name__ == '__main__':
-    main()
