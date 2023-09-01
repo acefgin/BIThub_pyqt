@@ -24,10 +24,7 @@ class dataVisual_Widget(QtWidgets.QWidget, Ui_dataVisualWidget_Form):
         self.checkBox_3.setChecked(True)
         self.checkBox_4.setChecked(True)
         self.checkBox_5.setChecked(True)
-        # labelTexts = [testLog["Input"], testLog["Protocol"], testLog["TestDate"]]
-        # self.label_2.setText(labelTexts[0])
-        # self.label_4.setText(labelTexts[1])
-        # self.label_6.setText(labelTexts[2])
+
         featList = self.graphicsView.curvesPlot(testLog)
 
         qTable = self.tableWidget
@@ -48,20 +45,26 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
         self.setupUi(self)
         self.pushButton_2.clicked.connect(self.getDbFile)
         self.pushButton_2.setEnabled(False)
+        self.pushButton_4.clicked.connect(self.exportRuns)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.isDeviceConnected)
         self.timer.start(1000)
         
     def getDbFile(self):
-        self.listWidget.getDd2Df()
-        self.listWidget.loadItemFromDF()
+        self.listWidget.loadRuns()
+        self.listWidget.getListItems()
         self.listWidget.getItemsForCombobox()
         self.listWidgetCtl()
+    
+    def exportRuns(self):
+        if len(self.listWidget.seletedRunId) == 0:
+            self.listWidget.bitRuns.exportRuns()
+        else:
+            self.listWidget.bitRuns.exportRuns(self.listWidget.seletedRunId)
     
     def isDeviceConnected(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('169.254.21.151', 22))
-        print(result)
         if result == 0:
             self.pushButton_2.setEnabled(True)
         else:
@@ -71,23 +74,20 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
     def listWidgetCtl(self):
         cbboxItems = self.listWidget.cbboxItemsSets
         keylist = self.listWidget.keyList
-        self.comboBox.addItem("All")
-        self.comboBox_2.addItem("All")
-        self.comboBox_3.addItem("All")
-        for i in range(len(keylist)):
+        comboBoxList = [self.comboBox, self.comboBox_2, self.comboBox_3]
+        self.comboBox.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[0], value))
+        self.comboBox_2.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[1], value))
+        self.comboBox_3.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[2], value))
+
+        for i, key in enumerate(keylist):
+            comboBox = comboBoxList[i]
+            comboBox.clear()
+            comboBox.addItem("All")
+            # comboBox.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(key, value))
+            
             for item in cbboxItems[i]:
-                if i == 0:
-                    self.comboBox.addItem(str(item))
-                elif i == 1:
-                    self.comboBox_2.addItem(str(item))
-                elif i == 2:
-                    self.comboBox_3.addItem(str(item))
-            if i == 0:
-                self.comboBox.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[0], value))
-            elif i == 1:
-                self.comboBox_2.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[1], value))
-            elif i == 2:
-                self.comboBox_3.currentTextChanged.connect(lambda value: self.listWidget.updateListItem(keylist[2], value))
+                comboBox.addItem(str(item))
+
 
 class testImport_Widget(QtWidgets.QWidget, testImportWidget_Form):
     def __init__(self, parent=None):

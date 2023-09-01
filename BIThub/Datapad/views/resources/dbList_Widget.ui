@@ -162,7 +162,14 @@
     </layout>
    </item>
    <item row="0" column="0">
-    <widget class="dbItemListWidget" name="listWidget"/>
+    <widget class="dbItemListWidget" name="listWidget">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -101,6 +101,8 @@ class Ui_dbListWidget_Form(object):
         self.horizontalLayout.addWidget(self.lineEdit)
         self.gridLayout.addLayout(self.horizontalLayout, 4, 0, 1, 1)
         self.listWidget = dbItemListWidget(dbListWidget_Form)
+        self.listWidget.setAlternatingRowColors(True)
+        self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.listWidget.setObjectName("listWidget")
         self.gridLayout.addWidget(self.listWidget, 0, 0, 1, 1)
         self.gridLayout.setRowStretch(0, 38)

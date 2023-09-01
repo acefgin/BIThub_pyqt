@@ -1,9 +1,15 @@
 import os, sys, sqlite3
 import paramiko, sqlalchemy
 import pandas as pd
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
      
 from PyQt5.QtWidgets import QApplication, QListWidget
 from PyQt5.QtCore import pyqtSignal
+
+from helpers.detectMethods import BITdetectMethods
 
 # A wrapper of paramiko.SSHClient to execute command with sudo
 class SshClient:
@@ -116,26 +122,161 @@ class BIT_Runs:
         self.dfDict = dfDict
         self.runsInfo = None
         self.getIdList(dfDict)
+        self.CHANNELNUM = 5
     
     def getIdList(self, dfDict):
         runsTb = dfDict['Runs']
         assayTb = dfDict['AssayDefinitions']
         self.runsInfo = runsTb.join(assayTb[['Id', 'Name', 'Version']].set_index('Id'), on='AssayDefinitionId', lsuffix='_r', rsuffix='_a')
+        self.runsInfo.reset_index()
+        for index, row in self.runsInfo.iterrows():
+            if row['Result'] == 0:
+                self.runsInfo.drop(index, inplace=True)
         
-    def getRunBySampleId(self, sampleId):
-        run = self.runQuery(sampleId)
+        self.fullIdList = self.runsInfo['Id'].values
+    
+    def exportRuns(self, runIdList = None , exportPath = None):
+        if runIdList is None:
+            runIdList = self.fullIdList
+        if exportPath is None:
+            exportPath = os.getcwd()
+            
+        for runId in runIdList:
+            
+            sampleId = self.runsInfo.loc[self.runsInfo['Id'] == int(runId)]['SampleId'].values[0]
+
+            run = self.getRun(runId)
+            
+            self.csvBuilder(run, exportPath)
+            plt = self.plotter(run)
+            savePath = os.path.join(exportPath, 'plots')
+            if not os.path.isdir(savePath):
+                os.mkdir(savePath)
+            OverallResult = run[0]['OverallResult']
+            plt.savefig(os.path.join(savePath, f'{sampleId}-{OverallResult}.png'))
+            
+    def csvBuilder(self, run, exportPath):
+        testInfo, lysisReads, detectReads = run
+        sampleId = testInfo['SampleId']
+        overallResult = testInfo['OverallResult']
+        
+        savePath = os.path.join(exportPath, 'csvs')
+        if not os.path.isdir(savePath):
+            os.mkdir(savePath)
+        
+        csvFileName = f'{sampleId}-{overallResult}.csv'
+        csvFile = os.path.join(savePath, csvFileName)
+        
+        with open(csvFile,'w', newline = '') as file:
+            header = ''
+            data = ''
+            
+            for key, value in testInfo.items():
+                header += f'{key},'
+                data += f'{value},'
+            header = header[:-1] + '\n'
+            data = data[:-1] + '\n'
+            file.write(header)
+            file.write(data)
+            file.write('\n')
+            
+            file.write('LysisType,LysisReadings\n')
+            file.write('Time,'+','.join(map(str, lysisReads[0]))+'\n')
+            file.write('Temp,'+','.join(map(str, lysisReads[1]))+'\n')
+            file.write('\n')
+            file.write('Well,Type,TargetName,Result,VoltageDifference,Readings\n')
+            file.write(',Time,,,,'+','.join(map(str, detectReads['Time']))+'\n')
+            file.write(',CartTemp,,,,'+','.join(map(str, detectReads['CartTemp']))+'\n')
+            file.write(',AdcTemp,,,,'+','.join(map(str, detectReads['AdcTemp']))+'\n')
+            for i in range(self.CHANNELNUM):
+                well = detectReads['Well'][i]
+                targetName = detectReads['Target'][i]
+                result = 'Amplified' if detectReads['ChResult'][i] == 1 else 'NotAmplified'
+                voltageDifference = detectReads['ChVolDiff'][i]
+                signal = detectReads['Signals'][i]
+                file.write(f'{well},Target,{targetName},{result},{voltageDifference},'+','.join(map(str, signal))+'\n')
+    
+    def plotter(self, run):
+        plt.style.use('seaborn-v0_8-bright')
+
+        plt.rc('axes', linewidth=2)
+        font = {'weight' : 'bold',
+        'size'   : 21}
+        plt.rc('font', **font)
+        testInfo, lysisReads, detectReads = run
+        bitMath = BITdetectMethods()
+        
+        time = detectReads['Time']
+        signalList = detectReads['Signals']
+
+        x = time / 60000 - 5
+        yMin, yMax = 0, 500
+
+        sampleId, barcode, ChLabel, OverallResult = testInfo['SampleId'], testInfo['Barcode'], detectReads['Target'], testInfo['OverallResult']
+
+        featList = np.zeros((5,4))
+
+        if len(signalList) != 0:
+
+            for i in range(self.CHANNELNUM):
+                _, diff, cp, stepWidth, avgRate = bitMath.labelSteps(signalList[i])
+                    
+                if diff == 0 and len(signalList[i]) >= 50:
+                    diff = round(bitMath.consecutiveSum(np.diff(signalList[i]), 50), 1)
+                featList[i] = [diff, cp, stepWidth, avgRate]
+
+        plt.figure(num=None, figsize=(24, 6), dpi=60)
+        ax = plt.subplot(111)
+        penList = ['r', '#35ff35', '#3535ff', '#35ffff', '#ff35ff']
+        for i in range(self.CHANNELNUM):
+            ax.plot(x, signalList[i], color = penList[i], linewidth=2, label=ChLabel[i])
+
+        plt.xlabel('Time (mins)', fontsize = 19, fontweight = 'bold')
+        plt.ylabel('Signal (mvs)', fontsize = 19, fontweight = 'bold')
+            
+        title = f'{sampleId}-{barcode}-{OverallResult}'
+        plt.title(title, fontsize = 20, fontweight = 'bold')
+        box = ax.get_position()
+        ax.set_position([box.x0*0.35, box.y0, box.width * 1.2, box.height])
+        ax.grid(linestyle = '-.')
+        ax.legend(loc='upper right',  ncol=1)
+        
+        # Print diffs data in plot
+        diffs_text = f'Diffs(mvs) = Ch1:{featList[0][0]}, Ch2:{featList[1][0]}, Ch3:{featList[2][0]}, Ch4:{featList[3][0]}, Ch5:{featList[4][0]}'
+        Tqs_text = f'Tqs(mins) = Ch1:{featList[0][1]}, Ch2:{featList[1][1]}, Ch3:{featList[2][1]}, Ch4:{featList[3][1]}, Ch5:{featList[4][1]}'
+        avgRate_text = f'avgRate(C/10sec) = Ch1:{featList[0][3]}, Ch2:{featList[1][3]}, Ch3:{featList[2][3]}, Ch4:{featList[3][3]}, Ch5:{featList[4][3]}'
+        
+        text_location = int(0.9 * yMax)
+        lineSpace = int((yMax - yMin)* 0.1)
+        plt.text(-4, text_location, diffs_text)
+        plt.text(-4, text_location - lineSpace, Tqs_text)
+        plt.text(-4, text_location - 2 * lineSpace, avgRate_text)
+
+        plt.axis([-5,30, yMin, yMax])
+        ax.xaxis.set_major_locator(MultipleLocator(5))
+        ax.xaxis.set_major_formatter('{x:.0f}')
+        ax.xaxis.set_minor_locator(MultipleLocator(2.5))
+
+        major_locator = (yMax - yMin) / 10
+        ax.yaxis.set_major_locator(MultipleLocator(major_locator))
+        ax.yaxis.set_major_formatter('{x:.0f}')
+        ax.yaxis.set_minor_locator(MultipleLocator(major_locator / 2))
+
+        return plt
+            
+            
+    def getRun(self, runId):
+        # runId type is INT
+        run = self.runQuery(int(runId))
         return run
     
-    def runQuery(self, sampleId):
+    def runQuery(self, runId):
         runsTb, targetTb, readsTb = self.dfDict['Runs'], self.dfDict['TargetResults'], self.dfDict['Readings']
         lysisTb, assayTb = self.dfDict['LysisReadings'], self.dfDict['AssayDefinitions']
         
-        runId = runsTb.loc[runsTb['SampleId'] == sampleId]['Id'].values[0]
-        barcode = runsTb.loc[runsTb['SampleId'] == sampleId]['Barcode'].values[0]
-        createdDate = runsTb.loc[runsTb['SampleId'] == sampleId]['CreatedDate'].values[0]
-        comments = runsTb.loc[runsTb['SampleId'] == sampleId]['Comments'].values[0]
-        assayId = runsTb.loc[runsTb['SampleId'] == sampleId]['AssayDefinitionId'].values[0]
-        OverallResult = runsTb.loc[runsTb['SampleId'] == sampleId]['Result'].values[0]
+        targetRow = runsTb.loc[runsTb['Id'] == runId]
+        
+        sampleId, barcode, createdDate, comments, assayId, OverallResult = targetRow[['SampleId', 'Barcode', 'CreatedDate', 'Comments', 'AssayDefinitionId', 'Result']].values[0]
         
         overallResultStr = None
         
@@ -190,13 +331,22 @@ class dbItemListWidget(QListWidget):
         
         self.dfDict = {}
         self.fullList = []
-        # self.getDd2Df()
-        # self.loadItemFromDF()
-        # self.getItemsForCombobox()
+        self.seletedRunId = []
+        self.bitRuns = None
 
         self.itemDoubleClicked.connect(self.onClicked)
+        self.itemSelectionChanged.connect(self.onSelectionChanged)
+        
+    def onSelectionChanged(self):
+        selectedItems = self.selectedItems()
+        if len(selectedItems) == 0:
+            return
+        self.seletedRunId = []
+        for item in selectedItems:
+            self.seletedRunId.append(item.text().split('-')[0])
+        print(self.seletedRunId)
     
-    def getDd2Df(self):
+    def loadRuns(self):
         host = '169.254.21.151'
         username = 'torizon'
         password = 'torizon1'
@@ -222,28 +372,68 @@ class dbItemListWidget(QListWidget):
         for table in table_name:
             df = pd.read_sql_table(table, engine)
             self.dfDict[table] = df
-
-    def loadItemFromDF(self):
         self.bitRuns = BIT_Runs(self.dfDict)
+
+    def getListItems(self):
         
-        for runId, sampleId in self.bitRuns.runsInfo[['Id', 'SampleId']].values:
-            self.fullList.append(f'{runId}-{sampleId}')
-            self.addItem(f'{runId}-{sampleId}')
+        for runId, sampleId, overallResult, assayName in self.bitRuns.runsInfo[['Id', 'SampleId', 'Result', 'Name']].values:
+            resultText = self.resultInterpret(overallResult)
+            if assayName == 'Dev_Mode':
+                self.fullList.append(f'{runId}-{sampleId}-{assayName}')
+                self.addItem(f'{runId}-{sampleId}-{assayName}')
+            else:
+                self.fullList.append(f'{runId}-{sampleId}-{resultText}')
+                self.addItem(f'{runId}-{sampleId}-{resultText}')
     
     def updateListItem(self, key, value):
         query = {}
         query[key] = value
-        print(query)
-        curItems = []
-        if value == 'All':
-            curItems = self.fullList
-        else:
-            for runId, sampleId in self.bitRuns.runsInfo.loc[self.bitRuns.runsInfo[key] == value][['runId', 'sampleId']].values:
-                curItems.append(f'{runId}-{sampleId}')
+        # print(query)
+        curItems = self.getItemsList()
         self.clear()
+        if value == 'All':
+            for item in self.fullList:
+                self.addItem(item)
+            return
+        if key == 'Result':
+            value = self.resultInterpret(value)
 
-        for item in curItems:
-            self.addItem(item["TestId"])
+        for runId, sampleId, overallResult, assayName in self.bitRuns.runsInfo.loc[self.bitRuns.runsInfo[key] == value][['Id', 'SampleId', 'Result', 'Name']].values:
+            
+            resultText = self.resultInterpret(overallResult)
+            if assayName == 'Dev_Mode':
+                itemText = f'{runId}-{sampleId}-{assayName}'
+                if itemText in curItems:
+                    self.addItem(itemText)
+            else:
+                itemText = f'{runId}-{sampleId}-{resultText}'
+                if itemText in curItems:
+                    self.addItem(itemText)
+    
+    def getItemsList(self):
+        items = set()
+        for i in range(self.count()):
+            items.add(self.item(i).text())
+        return items
+    
+    def resultInterpret(self, result):
+        if result == POS:
+            return 'POS'
+        elif result == NEG:
+            return 'NEG'
+        elif result == UNDEFINED:
+            return 'UNDEFINED'
+        elif result == INVALID:
+            return 'INVALID'
+        
+        if result == 'POS':
+            return POS
+        elif result == 'NEG':
+            return NEG
+        elif result == 'UNDEFINED':
+            return UNDEFINED
+        elif result == 'INVALID':
+            return INVALID
 
     def getItemsForCombobox(self):
         self.keyList = ['Result', 'Name', 'CreatedDate']
@@ -252,21 +442,19 @@ class dbItemListWidget(QListWidget):
             if key == 'Result':
                 itemList = []
                 for rlt in self.bitRuns.runsInfo[key].unique():
-                    if rlt == POS:
-                        itemList.append('POS')
-                    elif rlt == NEG:
-                        itemList.append('NEG')
-                    elif rlt == UNDEFINED:
-                        itemList.append('UNDEFINED')
-                    elif rlt == INVALID:
-                        itemList.append('INVALID')
+                    rltText = self.resultInterpret(rlt)
+                    itemList.append(rltText)
+                    
                 self.cbboxItemsSets.append(itemList)
+                continue
             self.cbboxItemsSets.append(self.bitRuns.runsInfo[key].unique())
     
     def onClicked(self, lstItem):
-        idStr = lstItem.text().split('-')[-1]
-        selectedTest = self.bitRuns.getRunBySampleId(idStr)
+        idStr = lstItem.text().split('-')[0]
+        selectedTest = self.bitRuns.getRun(idStr)
         self.onClickSignal.emit(selectedTest)
+        self.clearSelection()
+        self.seletedRunId = []
 
 # copy table from one db to another
 def copyTablesBetweenDb(sourceDb, targetDb, tableNames):
@@ -302,7 +490,7 @@ def addCol2Table(sqliteDb, tableName, colName, colType):
     c.execute(f'ALTER TABLE {tableName} ADD COLUMN {colName} {colType}')
     conn.commit()
     conn.close()
-    
+
 if __name__ == '__main__':
     # getDb()
     # dfDict = sql2Dataframes()

@@ -1,9 +1,10 @@
 import numpy as np
 
 class BITdetectMethods:
+    def __init__(self):
+        pass
     
-    
-    def consecutiveSum(arr, window_len):
+    def consecutiveSum(self, arr, window_len):
         if arr.ndim != 1:
             raise ValueError("smooth only accepts 1 dimension arrays.")
 
@@ -21,11 +22,14 @@ class BITdetectMethods:
             maxSum = np.maximum(maxSum, windowSum)
         return maxSum
 
-    def labelSteps(datas, startPt = 30, rateTh = 0.3, width_LB = 15, avgRate_LB = 0.8):
+    def labelSteps(self, datas, startPt = 30, rateTh = 0.3, width_LB = 15, avgRate_LB = 0.8):
         
-        #if len(datas) >= 10:
-        #	datas = smooth(datas)
-        dataDiffs = np.diff(datas)
+        if len(datas) >= 10:
+            smoothedDatas = self.smooth(np.array(datas))
+        else:
+            smoothedDatas = np.array(datas)
+         
+        dataDiffs = np.diff(smoothedDatas)
 
         listOfSteps = []
         inStep = False
@@ -76,20 +80,21 @@ class BITdetectMethods:
                         maxDiff = dataDiffs[index]
                         maxIndex = index
                     index += 1
-                if len(datas) > 10: cp = (maxIndex - datas[maxIndex + 1] / dataDiffs[maxIndex]) * 10 / 60 - 5
+                if len(datas) > 10 : 
+                    cp = (maxIndex - datas[maxIndex - 1] / dataDiffs[maxIndex]) * 10 / 60 - 5
         avgRate = 0
         if stepWidth != 0: avgRate = stepDiff/stepWidth
         
         return listOfSteps, round(stepDiff, 1), round(cp, 1), round(stepWidth, 1), round(avgRate, 1)
 
-    def zNormArr(arr):
+    def zNormArr(self, arr):
         baseline = round(np.mean(arr[30:60]), 2)
         sensorStd = round(np.std(arr[:30]) , 2)
         if sensorStd < 0.1:
             sensorStd = 0.1
         return (arr - baseline) / sensorStd, sensorStd
 
-    def stdBounding(arr, multiplier = 80):
+    def stdBounding(self, arr, multiplier = 80):
         evaInterval = 120 # secs
         samplingPeriod = 10 # 10 secs/sample
         gapPeriod = 360 # secs
@@ -122,63 +127,62 @@ class BITdetectMethods:
                 break
         return round(posTime, 1), globalMin, globalMax
 
+    def smooth(self, x, window_len=10,window='hanning'):
+        """smooth the data using a window with requested size.
 
-def smooth(x,window_len=10,window='hanning'):
-	"""smooth the data using a window with requested size.
+        This method is based on the convolution of a scaled window with the signal.
+        The signal is prepared by introducing reflected copies of the signal
+        (with the window size) in both ends so that transient parts are minimized
+        in the begining and end part of the output signal.
 
-	This method is based on the convolution of a scaled window with the signal.
-	The signal is prepared by introducing reflected copies of the signal
-	(with the window size) in both ends so that transient parts are minimized
-	in the begining and end part of the output signal.
+        input:
+            x: the input signal
+            window_len: the dimension of the smoothing window; should be an odd integer
+            window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+                flat window will produce a moving average smoothing.
 
-	input:
-		x: the input signal
-		window_len: the dimension of the smoothing window; should be an odd integer
-		window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-			flat window will produce a moving average smoothing.
+        output:
+            the smoothed signal
 
-	output:
-		the smoothed signal
+        example:
 
-	example:
+        t=linspace(-2,2,0.1)
+        x=sin(t)+randn(len(t))*0.1
+        y=smooth(x)
 
-	t=linspace(-2,2,0.1)
-	x=sin(t)+randn(len(t))*0.1
-	y=smooth(x)
+        see also:
 
-	see also:
+        numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+        scipy.signal.lfilter
 
-	numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-	scipy.signal.lfilter
+        TODO: the window parameter could be the window itself if an array instead of a string
+        NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+        """
 
-	TODO: the window parameter could be the window itself if an array instead of a string
-	NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
-	"""
+        if x.ndim != 1:
+            raise ValueError("smooth only accepts 1 dimension arrays.")
 
-	if x.ndim != 1:
-		raise ValueError("smooth only accepts 1 dimension arrays.")
-
-	if x.size < window_len:
-		raise ValueError("Input vector needs to be bigger than window size.")
-
-
-	if window_len<3:
-		return x
+        if x.size < window_len:
+            raise ValueError("Input vector needs to be bigger than window size.")
 
 
-	if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-		raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+        if window_len<3:
+            return x
 
 
-	s = np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
-	#print(len(s))
-	if window == 'flat': #moving average
-		w = np.ones(window_len,'d')
-	else:
-		w = eval('np.'+window+'(window_len)')
+        if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+            raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
-	y = np.convolve(w/w.sum(),s,mode='valid')
-	return np.round(y, decimals = 3)
+
+        s = np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+        #print(len(s))
+        if window == 'flat': #moving average
+            w = np.ones(window_len,'d')
+        else:
+            w = eval('np.'+window+'(window_len)')
+
+        y = np.convolve(w/w.sum(),s,mode='valid')
+        return np.round(y, decimals = 3)
 '''
 def curve_fit():
 
