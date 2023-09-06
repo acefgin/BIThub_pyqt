@@ -143,28 +143,24 @@ class BIT_Runs:
             
         for runId in runIdList:
             
-            sampleId = self.runsInfo.loc[self.runsInfo['Id'] == int(runId)]['SampleId'].values[0]
-
             run = self.getRun(runId)
             
-            self.csvBuilder(run, exportPath)
-            plt = self.plotter(run)
+            plt, plotTitle = self.plotter(run)
+            self.csvBuilder(run, exportPath, plotTitle)
+            
             savePath = os.path.join(exportPath, 'plots')
             if not os.path.isdir(savePath):
                 os.mkdir(savePath)
-            OverallResult = run[0]['OverallResult']
-            plt.savefig(os.path.join(savePath, f'{sampleId}-{OverallResult}.png'))
+            plt.savefig(os.path.join(savePath, f'{plotTitle}.png'))
             
-    def csvBuilder(self, run, exportPath):
+    def csvBuilder(self, run, exportPath, title):
         testInfo, lysisReads, detectReads = run
-        sampleId = testInfo['SampleId']
-        overallResult = testInfo['OverallResult']
         
         savePath = os.path.join(exportPath, 'csvs')
         if not os.path.isdir(savePath):
             os.mkdir(savePath)
         
-        csvFileName = f'{sampleId}-{overallResult}.csv'
+        csvFileName = f'{title}.csv'
         csvFile = os.path.join(savePath, csvFileName)
         
         with open(csvFile,'w', newline = '') as file:
@@ -213,6 +209,8 @@ class BIT_Runs:
         yMin, yMax = 0, 500
 
         sampleId, barcode, ChLabel, OverallResult = testInfo['SampleId'], testInfo['Barcode'], detectReads['Target'], testInfo['OverallResult']
+        
+        assayName = testInfo['Assay.Name']
 
         featList = np.zeros((5,4))
 
@@ -233,8 +231,11 @@ class BIT_Runs:
 
         plt.xlabel('Time (mins)', fontsize = 19, fontweight = 'bold')
         plt.ylabel('Signal (mvs)', fontsize = 19, fontweight = 'bold')
-            
-        title = f'{sampleId}-{barcode}-{OverallResult}'
+        
+        if assayName != 'Dev_Mode':
+            title = f'{sampleId}-{barcode}-{OverallResult}'
+        else:
+            title = f'{sampleId}-{barcode}-{assayName}'
         plt.title(title, fontsize = 20, fontweight = 'bold')
         box = ax.get_position()
         ax.set_position([box.x0*0.35, box.y0, box.width * 1.2, box.height])
@@ -262,9 +263,8 @@ class BIT_Runs:
         ax.yaxis.set_major_formatter('{x:.0f}')
         ax.yaxis.set_minor_locator(MultipleLocator(major_locator / 2))
 
-        return plt
-            
-            
+        return plt, title
+                    
     def getRun(self, runId):
         # runId type is INT
         run = self.runQuery(int(runId))
