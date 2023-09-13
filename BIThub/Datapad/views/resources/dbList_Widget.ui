@@ -103,7 +103,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Clear runs</string>
+        <string>GS logRuns</string>
        </property>
       </widget>
      </item>
@@ -152,7 +152,7 @@
      <item>
       <widget class="QPushButton" name="pushButton">
        <property name="text">
-        <string>Find</string>
+        <string>GSkey:workS</string>
        </property>
       </widget>
      </item>

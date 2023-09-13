@@ -1,108 +1,67 @@
-from __future__ import print_function
+import gspread
+from PyQt5 import QtWidgets
 
-import os.path, gspread
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-# If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-# The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '1l6Knw0hzO0a4EiWoqg36BOtKD0eDbt3EQiR9VzNeDSw'
-SAMPLE_RANGE_NAME = 'AutoTest log!B2:L'
-
-class GoogleSheetOps:
-    def __init__(self, sheetId = '1l6Knw0hzO0a4EiWoqg36BOtKD0eDbt3EQiR9VzNeDSw'):
-        self.creds = None
-        self.service = None
-        self.sheet = None
-        self.values = None
-        self.SHEET_ID = sheetId
-        self.connect()
-    
-    def connect(self):
-        if os.path.exists('token.json'):
-            self.creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        if not self.creds or not self.creds.valid:
-            if self.creds and self.creds.expired and self.creds.refresh_token:
-                self.creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                self.creds = flow.run_local_server(port=0)
-            with open('token.json', 'w') as token:
-                token.write(self.creds.to_json())
-        self.service = build('sheets', 'v4', credentials=self.creds)
-        self.sheet = self.service.spreadsheets()
-    
-    def getValues(self, rangeName):
-        self.values = self.sheet.values().get(spreadsheetId=self.SHEET_ID,
-                                    range=rangeName).execute().get('values', [])
-        return self.values
-    
-    def batchUpdate(self, body):
-        self.sheet.values().batchUpdate(
-            spreadsheetId=self.SHEET_ID, body = body).execute()
+class GSheetObj:
+    def  __init__(self, sheetId = '1l6Knw0hzO0a4EiWoqg36BOtKD0eDbt3EQiR9VzNeDSw', curWorkSheet = 'AutoTest log'):
+        credentials = {"installed":{"client_id":"REDACTED_CLIENT_ID","project_id":"thylacine-automatic-test-log","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"REDACTED_CLIENT_SECRET","redirect_uris":["http://localhost"]}}
+        authorized_user = {"refresh_token": "REDACTED_REFRESH_TOKEN", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "REDACTED_CLIENT_ID", "client_secret": "REDACTED_CLIENT_SECRET", "scopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"], "expiry": "2023-09-12T23:58:43.232085Z"}
+        gc, authorized_user = gspread.oauth_from_dict(credentials, authorized_user)
         
-    def append(self, body):
-        self.sheet.values().append(
-            spreadsheetId=self.SHEET_ID, body = body).execute()
+        self.wks = gc.open_by_key(sheetId).worksheet(curWorkSheet)
+        letterList = [chr(i) for i in range(65, 91)]
+        self.headersDict = {header:letterList[i] for i, header in enumerate(self.wks.row_values(1)[:26])}
+        self.endRowIndex = len(self.wks.col_values(2))
     
-    def clear(self, rangeName):
-        self.sheet.values().clear(
-            spreadsheetId=self.SHEET_ID, range=rangeName).execute()
+    def logRun(self, run, userinputs):
+        testInfo, lysisReads, detectReads = run
+        cartrideId = testInfo['Barcode']
+        sampleId = testInfo['SampleId']
+        print(userinputs)
+        date, loc, deviceId = userinputs.split(';')
+        
+        volDiffs = detectReads['ChVolDiff']
+        chRlts = detectReads['ChResult']
+        resultCell = []
+        for rlt in chRlts:
+            if rlt == 1:
+                resultCell.append('+')
+            else:
+                resultCell.append('-')
+        resultCell = ','.join(resultCell)
+        
+        cellValues = {'Date': date, 'Location': loc, 'Device ID': deviceId, 'Cartridge ID': cartrideId, 
+                      'Sample ID on Device': sampleId, 'Result': resultCell, 'PD1 mvs ▲': volDiffs[0], 
+                      'PD2 mvs ▲': volDiffs[1], 'PD3 mvs ▲': volDiffs[2], 'PD4 mvs ▲': volDiffs[3], 'PD5 mvs ▲': volDiffs[4]}
+        
+        for key, value in cellValues.items():
+            self.wks.update(f'{self.headersDict[key]}{self.endRowIndex+1}', value, value_input_option='USER_ENTERED')
+        self.endRowIndex += 1
     
-    def search(self, rangeName, query):
-        self.values = self.sheet.values().get(spreadsheetId=self.SHEET_ID,
-                                    range=rangeName).execute().get('values', [])
-        for row in self.values:
-            print(row)
-            if query in row:
-                return row
-        return None
-    
-    def find
-
-def runCsv2Df(csvPath):
-    import pandas as pd
-    df = pd.read_csv(csvPath)
-    return df
+    def autoFill(self):
+        startRowIdx = len(self.wks.col_values(1)) + 1
+        endRowIdx = self.endRowIndex
+        sameDateTestCnt = 1
+        curDate = self.wks.acell(f'{self.headersDict["Date"]}{startRowIdx}').value
+        for i in range(endRowIdx - startRowIdx + 1):
+            date = self.wks.acell(f'{self.headersDict["Date"]}{startRowIdx + i}').value
+            deviceId = self.wks.acell(f'{self.headersDict["Device ID"]}{startRowIdx + i}').value
+            if date == curDate:
+                self.wks.update(f'{self.headersDict["Test #"]}{startRowIdx + i}', sameDateTestCnt, value_input_option='USER_ENTERED')
+                sameDateTestCnt += 1
+            else:
+                curDate = date
+                sameDateTestCnt = 1
+                self.wks.update(f'{self.headersDict["Test #"]}{startRowIdx + i}', sameDateTestCnt, value_input_option='USER_ENTERED')
+            
+            testId = f'{date}_{deviceId}_{sameDateTestCnt}'
+            self.wks.update(f'{self.headersDict["Test ID#"]}{startRowIdx + i}', testId, value_input_option='USER_ENTERED')
+        
+        
 
 if __name__ == '__main__':
-    gs = GoogleSheetOps()
-    # print(gs.getValues(SAMPLE_RANGE_NAME))
-    
-    batch_update_values_request_body = {
-    "valueInputOption": "USER_ENTERED",
-    "data": [
-        {
-            'range': 'AutoTest log!P66:W',
-            'values': [['1', '2', '3', '4', '5', '6', '7']]
-        },
-        {
-            'range': 'AutoTest log!P67:W',
-            'values': [['1', '2', '3', '4', '5', '6', '7']]
-        },
-        {
-            'range': 'AutoTest log!P68:W',
-            'values': [['1', '2', '3', '4', '5', '6', '7']]
-        },
-        {
-            'range': 'AutoTest log!P69:W',
-            'values': [['1', '2', '3', '4', '5', '6', '7']]
-        },
-        {
-            'range': 'AutoTest log!P70:W',
-            'values': [['1', '2', '3', '4', '5', '6', '7']]
-        },
-    ]
-}
-    testRange = 'AutoTest log!B66'
-    # gs.batchUpdate(batch_update_values_request_body)
-    targetRow = gs.search('AutoTest log!I:I', 'NCSUPI0019')
-    print(targetRow)
-    
+
+
+    sh = GSheetObj()
+    # cell = sh.wks.find("NCSPI0069")
+    # sh.wks.update_cell(cell.row + 1, cell.col + 1, 'PASS')
+    # print(sh.headersDict)

@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QListWidget
 from PyQt5.QtCore import pyqtSignal
 
 from helpers.detectMethods import BITdetectMethods
+from helpers.gsOps import GSheetObj
 
 # A wrapper of paramiko.SSHClient to execute command with sudo
 class SshClient:
@@ -123,6 +124,8 @@ class BIT_Runs:
         self.runsInfo = None
         self.getIdList(dfDict)
         self.CHANNELNUM = 5
+        self.gs = GSheetObj()
+        print(self.gs)
     
     def getIdList(self, dfDict):
         runsTb = dfDict['Runs']
@@ -152,6 +155,11 @@ class BIT_Runs:
             if not os.path.isdir(savePath):
                 os.mkdir(savePath)
             plt.savefig(os.path.join(savePath, f'{plotTitle}.png'))
+    
+    def logRun2GSheet(self, runId, userinputs):
+
+        run = self.getRun(runId)
+        self.gs.logRun(run, userinputs)
             
     def csvBuilder(self, run, exportPath, title):
         testInfo, lysisReads, detectReads = run
@@ -347,25 +355,29 @@ class dbItemListWidget(QListWidget):
         print(self.seletedRunId)
     
     def loadRuns(self):
-        host = '169.254.21.151'
-        username = 'torizon'
-        password = 'torizon1'
-        ssh = SshClient(host, 22, username, password)
-        dbPath = 'cxldnabit_web:/sqlite/cxl.db'
-        stdin, stdout, stderr = ssh.client.exec_command(f'docker cp {dbPath} /var/rootdirs/home/torizon')
-        exit_status = stdout.channel.recv_exit_status() 
+        # host = '169.254.21.151'
+        # username = 'torizon'
+        # password = 'torizon1'
+        # ssh = SshClient(host, 22, username, password)
+        # dbPath = 'cxldnabit_web:/sqlite/cxl.db'
+        # stdin, stdout, stderr = ssh.client.exec_command(f'docker cp {dbPath} /var/rootdirs/home/torizon')
+        # exit_status = stdout.channel.recv_exit_status() 
         
-        # config sftp
-        dirSource = '/var/rootdirs/home/torizon/cxl.db'
-        target = os.path.join(os.getcwd(), 'cxl.db')
-        sftp = MySFTPClient.from_transport(ssh.client.get_transport())
-        if exit_status == 0:
-            sftp.get(dirSource, target)
-        else:
-            print('Failed to copy db file')
-        ssh.client.exec_command('rm /var/rootdirs/home/torizon//cxl.db')
+        # # config sftp
+        # dirSource = '/var/rootdirs/home/torizon/cxl.db'
+        # target = os.path.join(os.getcwd(), 'cxl.db')
+        # sftp = MySFTPClient.from_transport(ssh.client.get_transport())
+        # if exit_status == 0:
+        #     sftp.get(dirSource, target)
+        # else:
+        #     print('Failed to copy db file')
+        # ssh.client.exec_command('rm /var/rootdirs/home/torizon//cxl.db')
         
-        db_name = "cxl.db"
+        # db_name = "cxl.db"
+        
+        # offline test
+        db_name = "cxl_N002.db"
+        
         table_name = ['Runs', 'TargetResults', 'Readings', 'LysisReadings','AssayDefinitions']
 
         engine = sqlalchemy.create_engine("sqlite:///%s" % db_name, execution_options={"sqlite_raw_colnames": True})
@@ -492,7 +504,7 @@ def addCol2Table(sqliteDb, tableName, colName, colType):
     conn.close()
 
 if __name__ == '__main__':
-    # getDb()
+    getDb()
     # dfDict = sql2Dataframes()
     
     # app = QApplication(sys.argv)
@@ -505,5 +517,8 @@ if __name__ == '__main__':
     # sys.exit(app.exec_())
     
     # copyTablesBetweenDb('cxl_s.db', 'cxl.db', ['Runs', 'TargetResults', 'Readings', 'LysisReadings','AssayDefinitions', 'SmoothedReadings'])
-    startRunId, endRunId = 150, 161
-    deleteRuns('cxl.db', range(startRunId, endRunId + 1))
+    # startRunId, endRunId = 150, 161
+    # deleteRuns('cxl.db', range(startRunId, endRunId + 1))
+    
+    
+    

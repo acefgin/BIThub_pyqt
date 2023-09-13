@@ -121,8 +121,8 @@ class Ui_dbListWidget_Form(object):
         self.label_2.setText(_translate("dbListWidget_Form", "Assay.Name"))
         self.label.setText(_translate("dbListWidget_Form", "Result"))
         self.pushButton_2.setText(_translate("dbListWidget_Form", "Load runs"))
-        self.pushButton_3.setText(_translate("dbListWidget_Form", "Clear runs"))
+        self.pushButton_3.setText(_translate("dbListWidget_Form", "GS logRuns"))
         self.pushButton_4.setText(_translate("dbListWidget_Form", "Export runs"))
         self.label_3.setText(_translate("dbListWidget_Form", "Test Date"))
-        self.pushButton.setText(_translate("dbListWidget_Form", "Find"))
+        self.pushButton.setText(_translate("dbListWidget_Form", "GSkey:workS"))
 from helpers.sqlOps import dbItemListWidget

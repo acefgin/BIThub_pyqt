@@ -4,7 +4,7 @@ from views.resources.testImport_Widget import testImportWidget_Form
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-import os, csv, glob, json, socket
+import os, csv, glob, json, socket, re
 
 from pathlib import Path
 
@@ -44,11 +44,38 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
         super(dbList_Widget, self).__init__(parent)
         self.setupUi(self)
         self.pushButton_2.clicked.connect(self.getDbFile)
-        self.pushButton_2.setEnabled(False)
+        # self.pushButton_2.setEnabled(False)
+        self.pushButton_3.clicked.connect(self.logRuns2GSheet)
+        
         self.pushButton_4.clicked.connect(self.exportRuns)
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.isDeviceConnected)
-        self.timer.start(1000)
+        # self.timer = QtCore.QTimer(self)
+        # self.timer.timeout.connect(self.isDeviceConnected)
+        # self.timer.start(1000)
+        
+    def logRuns2GSheet(self):
+        dlg = QtWidgets.QMessageBox(self)
+        dlg.setWindowTitle("Input error")
+        dlg.setText("Please check the input format")
+
+        items = self.listWidget.selectedItems()
+        for i, runId in enumerate(self.listWidget.seletedRunId):
+            r = re.compile('.*;.*;.*')
+                
+            userinputs = QtWidgets.QInputDialog.getText(self, f'Log run to GSheet', f'Loging {items[i].text()} to remote, please input ==> date;location;deviceId:')
+            if userinputs[1] == False:
+                break
+            
+            while r.match(userinputs[0]) is None:
+                button = dlg.exec_()
+                if button == QtWidgets.QMessageBox.Ok:
+                    userinputs = QtWidgets.QInputDialog.getText(self, f'Log run to GSheet', f'Loging {items[i].text()} to remote, please input ==> date;location;deviceId:')
+
+                    if userinputs[1] == False:
+                        break
+            if userinputs[1] == False:
+                break
+            self.listWidget.bitRuns.logRun2GSheet(runId, userinputs[0])
+        self.listWidget.bitRuns.gs.autoFill()
         
     def getDbFile(self):
         self.listWidget.loadRuns()
@@ -405,10 +432,10 @@ class testImport_Widget(QtWidgets.QWidget, testImportWidget_Form):
 
 if __name__ == "__main__":
     import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
+    # app = QtWidgets.QApplication(sys.argv)
+    # MainWindow = QtWidgets.QMainWindow()
 
-    centralwidget = QtWidgets.QWidget(MainWindow)
+    # centralwidget = QtWidgets.QWidget(MainWindow)
 
-    MainWindow.show()
-    sys.exit(app.exec_())
+    # MainWindow.show()
+    # sys.exit(app.exec_())
