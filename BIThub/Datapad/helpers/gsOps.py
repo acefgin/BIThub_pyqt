@@ -1,9 +1,20 @@
 import gspread
+import json
+import os
 
 class GSheetObj:
     def  __init__(self, sheetId = '1l6Knw0hzO0a4EiWoqg36BOtKD0eDbt3EQiR9VzNeDSw', curWorkSheet = 'AutoTest log'):
-        credentials = {"installed":{"client_id":"REDACTED_CLIENT_ID","project_id":"thylacine-automatic-test-log","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"REDACTED_CLIENT_SECRET","redirect_uris":["http://localhost"]}}
-        authorized_user = {"refresh_token": "REDACTED_REFRESH_TOKEN", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "REDACTED_CLIENT_ID", "client_secret": "REDACTED_CLIENT_SECRET", "scopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"], "expiry": "2023-09-12T23:58:43.232085Z"}
+        # Load credentials from external JSON files (not tracked in git)
+        helpers_dir = os.path.dirname(os.path.abspath(__file__))
+        credentials_path = os.path.join(helpers_dir, 'credentials.json')
+        authorized_user_path = os.path.join(helpers_dir, 'authorized_user.json')
+        
+        with open(credentials_path, 'r') as f:
+            credentials = json.load(f)
+        
+        with open(authorized_user_path, 'r') as f:
+            authorized_user = json.load(f)
+        
         gc, authorized_user = gspread.oauth_from_dict(credentials, authorized_user)
         
         self.wks = gc.open_by_key(sheetId).worksheet(curWorkSheet)
