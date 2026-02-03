@@ -1,5 +1,4 @@
 import gspread
-from PyQt5 import QtWidgets
 
 class GSheetObj:
     def  __init__(self, sheetId = '1l6Knw0hzO0a4EiWoqg36BOtKD0eDbt3EQiR9VzNeDSw', curWorkSheet = 'AutoTest log'):

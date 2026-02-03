@@ -2,7 +2,7 @@ from views.resources.dataVisul_Widget_ui import Ui_dataVisualWidget_Form
 from views.resources.dbList_Widget_ui import Ui_dbListWidget_Form
 from views.resources.testImport_Widget import testImportWidget_Form
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 import os, csv, glob, json, socket, re
 
@@ -75,7 +75,8 @@ class dbList_Widget(QtWidgets.QWidget, Ui_dbListWidget_Form):
             if userinputs[1] == False:
                 break
             self.listWidget.bitRuns.logRun2GSheet(runId, userinputs[0])
-        self.listWidget.bitRuns.gs.autoFill()
+        if self.listWidget.bitRuns.gs is not None:
+            self.listWidget.bitRuns.gs.autoFill()
         
     def getDbFile(self):
         self.listWidget.loadRuns()

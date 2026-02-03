@@ -25,7 +25,7 @@ class runsPlotWidget(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
         super(runsPlotWidget, self).__init__(parent)
         self.canvas = MplCanvas(self, width=24, height=6, dpi=40)
-        plt.style.use('seaborn-bright')
+        plt.style.use('seaborn-v0_8-bright')
         plt.rc('axes', linewidth=2)
         font = {'weight' : 'bold', 'size' : 21}
         plt.rc('font', **font)

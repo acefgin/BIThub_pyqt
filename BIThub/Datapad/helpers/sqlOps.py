@@ -1,4 +1,4 @@
-import os, sys, sqlite3
+import os, sqlite3
 import paramiko, sqlalchemy
 import pandas as pd
 
@@ -124,8 +124,12 @@ class BIT_Runs:
         self.runsInfo = None
         self.getIdList(dfDict)
         self.CHANNELNUM = 5
-        self.gs = GSheetObj()
-        print(self.gs)
+        self.gs = None
+        try:
+            self.gs = GSheetObj()
+            print(self.gs)
+        except Exception as e:
+            print(f"Google Sheets disabled: {e}")
     
     def getIdList(self, dfDict):
         runsTb = dfDict['Runs']
@@ -157,9 +161,12 @@ class BIT_Runs:
             plt.savefig(os.path.join(savePath, f'{plotTitle}.png'))
     
     def logRun2GSheet(self, runId, userinputs):
-
+        if self.gs is None:
+            print("Google Sheets is not available")
+            return False
         run = self.getRun(runId)
         self.gs.logRun(run, userinputs)
+        return True
             
     def csvBuilder(self, run, exportPath, title):
         testInfo, lysisReads, detectReads = run
